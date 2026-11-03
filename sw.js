@@ -1,6 +1,6 @@
 // Keeps the app shell (this page, icons, manifest) on the phone so the app opens instantly.
-// Project data is never cached here - it always comes live from Google through the frame.
-var CACHE = 'grace-shell-v2';
+// Project data is never cached here - it always comes live from Google.
+var CACHE = 'grace-shell-v3';
 var SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/logo-mark.png'];
 
 self.addEventListener('install', function (e) {

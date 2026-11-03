@@ -22,9 +22,7 @@
   :root { --bg: #f3f4f8; --bar: #ffffff; --text: #141a2e; --muted: #636a7e; --brand: #1f3a8a; }
   @media (prefers-color-scheme: dark) { :root { --bg: #0e1118; --bar: #161a25; --text: #e8eaf2; --muted: #a0a7bb; --brand: #9db2ff; } }
   html, body { margin: 0; height: 100%; background: var(--bar); color: var(--text); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; overflow: hidden; }
-  /* The app runs inside a frame, where the phone's safe-area insets are not visible, so pad here. */
   .wrap { position: fixed; inset: 0; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); background: var(--bar); }
-  iframe { display: block; width: 100%; height: 100%; border: 0; background: var(--bg); }
   .screen { position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; padding: 24px; background: var(--bg); text-align: center; transition: opacity .25s; }
   .screen.hide { opacity: 0; pointer-events: none; }
   .box { max-width: 340px; }
@@ -58,7 +56,7 @@
   var msg = document.getElementById('splashMsg');
   var act = document.getElementById('splashAct');
   var dots = document.getElementById('dots');
-  var frame = null, slowTimer = null;
+  var slowTimer = null;
 
   function show(text, buttonLabel, onClick, busy) {
     msg.innerHTML = text;
@@ -75,21 +73,18 @@
     }
     if (!navigator.onLine) { show('You are offline. Connect to the internet to see live project data.', 'Try again', open); return; }
     show('Opening the command center&hellip;', null, null, true);
-    if (frame) frame.remove();
-    frame = document.createElement('iframe');
-    frame.title = 'Grace Hypermarket Command Center';
-    frame.allow = 'camera; clipboard-write';
-    frame.src = APP_URL;
-    frame.onload = function () { clearTimeout(slowTimer); splash.classList.add('hide'); };
-    document.getElementById('wrap').appendChild(frame);
+    // Open the app as the whole page, not in a frame: Google refuses framed web apps
+    // ("Sorry, unable to open the file") when the phone is signed in to a Google account.
+    // replace() keeps this page out of history, so Back does not bounce into a loop.
+    location.replace(APP_URL);
     clearTimeout(slowTimer);
     slowTimer = setTimeout(function () {
-      show('This is taking longer than usual. Google can be slow on the first open of the day.', 'Reload', open, true);
+      show('This is taking longer than usual. Google can be slow on the first open of the day.', 'Open again', open, true);
     }, 15000);
   }
 
-  window.addEventListener('offline', function () { show('You are offline. Changes cannot be saved until you reconnect.', 'Try again', open); });
-  window.addEventListener('online', open);
+  // Coming back to this page from the browser cache: offer a button instead of redirecting again.
+  window.addEventListener('pageshow', function (e) { if (e.persisted) show('Grace Hypermarket command center', 'Open', open); });
 
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
   open();
